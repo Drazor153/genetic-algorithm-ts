@@ -107,8 +107,8 @@ export async function backpackAlgorithm(args: {
   }
 
   function selection(popOuter: number[][]): number[][] {
-    const GRADED_RETAIN_PERCENT = 0.3;
-    const NONGRADED_RETAIN_PERCENT = 0.2;
+    const GRADED_RETAIN_PERCENT = 0.2;
+    const NONGRADED_RETAIN_PERCENT = 0.3;
     const nBest = Math.round(popOuter.length * GRADED_RETAIN_PERCENT);
     const nRandom = Math.round(popOuter.length * NONGRADED_RETAIN_PERCENT);
 

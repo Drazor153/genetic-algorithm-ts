@@ -1,45 +1,57 @@
 import type { Score } from '../types/Score';
-import { randomInt } from '../utils';
+import { miliToTimeString, randomInt } from '../utils';
 import { obtainCities } from './utils';
 
-export async function roadAlgorithm(args: {
+interface RoadAlgArgs {
   filename: string;
   loggerFilename: string;
   n_population: number;
   n_generations: number;
-}) {
-  const { filename, loggerFilename, n_population, n_generations } = args;
+  timing: number;
+}
+
+export async function roadAlgorithm(args: RoadAlgArgs) {
+  const { filename, loggerFilename, n_population, n_generations, timing } =
+    args;
   const cities = await obtainCities(filename);
-  const MATRIX_DISTANCES: number[][] = new Array(cities.length).fill([]).map(() => new Array(cities.length).fill(0));
+  const MATRIX_DISTANCES: number[][] = new Array(cities.length)
+    .fill([])
+    .map(() => new Array(cities.length).fill(0));
   generateDistancesMatrix();
 
   const loggerWriter = Bun.file(loggerFilename).writer();
   loggerWriter.write(
-    `Date: ${new Date().toLocaleDateString()}, Num generations: ${n_generations}, Chroms per population: ${n_population}\n`,
+    // `Date: ${new Date().toLocaleDateString()}, Num generations: ${n_generations}, Chroms per population: ${n_population}\n`,
+    `Date: ${new Date().toLocaleDateString()}, Total time exec: ${miliToTimeString(timing)}, Chroms per population: ${n_population}\n`,
   );
 
   let population = createPopulation(n_population, cities.length);
   generationLog(0, population);
-  // console.log(
-  //   'Generacion 0 -> ',
-  //   population.map((chrom) => chrom.join(',')),
-  // );
-  for (let i = 0; i < n_generations; i++) {
+
+  let finished = false;
+  let i = 0;
+  const FINISH_TIME = Date.now() + timing;
+  
+  while (!finished) {
     population = generation(population);
     generationLog(i + 1, population);
-    // console.log(`Generacion ${i + 1} -> `, population.map(chrom => chrom.join(',')));
+    i++;
+    finished = Date.now() > FINISH_TIME;
   }
+  // for (let i = 0; i < n_generations; i++) {
+  //   // console.log(`Generacion ${i + 1} -> `, population.map(chrom => chrom.join(',')));
+  // }
 
   loggerWriter.end();
 
   function generationLog(i: number, population: number[][]): void {
     loggerWriter.write(`Generation ${i}:\n`);
     population.forEach((chrom, index) => {
-      const citiesList = chrom.map((val) => cities[val].name)
+      const citiesList = chrom.map((val) => cities[val].name);
       // const obj = { chromosome: chrom.join('-'), score: getScore(chrom) };
       // loggerWriter.write(`   ${JSON.stringify(obj)}\n`);
-      loggerWriter.write(`  Chromosome ${index+1}\n`)
-      loggerWriter.write(`     Cities: ${JSON.stringify(citiesList)}\n`)
+      loggerWriter.write(`  Chromosome ${index + 1}\n`);
+      loggerWriter.write(`     Cities: ${JSON.stringify(citiesList)}\n`);
       loggerWriter.write(`     Score: ${getScore(chrom)}\n`);
     });
   }
