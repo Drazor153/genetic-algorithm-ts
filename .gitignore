@@ -175,4 +175,3 @@ dist
 .DS_Store
 
 src/**/results
-src/**/data
